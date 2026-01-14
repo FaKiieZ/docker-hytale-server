@@ -1,4 +1,10 @@
-# Docker Hytale Server
+<!-- LOGO -->
+<h1>
+<p align="center">
+  <img src="https://github.com/zacheri04/docker-hytale-server/blob/main/assets/project_icon.png?raw=true" alt="Logo" width="512">
+  <br>Docker Hytale Server
+</p>
+</h1>
 
 Docker image that provides a Hytale Server.
 
@@ -37,12 +43,12 @@ services:
 ```
 
 3. First time setup requires some configuration. Run with `docker compose up`
-4. Click the link in the terminal to authenticate via the Hytale website to complete the server file download
-5. When the server is started as shown below, press `Ctrl + C` to stop it
+4. Click the link in the terminal to authenticate via the Hytale website to complete the server file download <img src="https://github.com/zacheri04/docker-hytale-server/blob/main/assets/authentication_message_download_2.png?raw=true" alt="Auth Confirmation" width="1024">
+5. When the server is started as shown below, press `Ctrl + C` to stop it <img src="https://github.com/zacheri04/docker-hytale-server/blob/main/assets/server_started.png?raw=true" alt="Server Started" width="1024">
 6. Run `docker compose up -d`
 7. Run `docker ps` and find the container ID
 8. Run `docker attach [container-id]` as shown below
-9. You're now in the server console. Run `/auth login device` and follow the authentication prompt similar to step 4.
+9. You're now in the server console. Run `/auth login device` and follow the authentication prompt similar to step 4. <img src="https://github.com/zacheri04/docker-hytale-server/blob/main/assets/server_auth.png?raw=true" alt="Server Started" width="1024">
 10. OPTIONAL (but recommended): Run `/auth persistence Encrypted`. This will save your authentication so you don't have to run it every time the server starts.
 11. You can now run `Ctrl P, Q` to detach from the Docker container.
 12. You're done. Connect with your server's IP address on port 5520. You can stop the server with `docker stop [container-id]` and start it with `docker compose up -d`.
