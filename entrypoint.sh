@@ -10,8 +10,15 @@ MAX_PLAYERS=${MAX_PLAYERS:-100}
 MAX_RADIUS=${MAX_RADIUS:-32}
 WORLD_NAME=${WORLD_NAME:-"default"}
 GAME_MODE=${GAME_MODE:-"Adventure"}
-JARFILE=${JARFILE:-"HytaleServer.jar"}
+VERSION=${VERSION:-"latest"}
 ASSETS_ZIP=${ASSETS_ZIP:-"Assets.zip"}
+
+# Determine the JAR file name based on version
+if [ "$VERSION" = "latest" ]; then
+    JARFILE=${JARFILE:-"HytaleServer.jar"}
+else
+    JARFILE=${JARFILE:-"HytaleServer-${VERSION}.jar"}
+fi
 
 # Use jq to build the JSON object
 # We use --arg for strings and --argjson for numbers/booleans
@@ -57,7 +64,11 @@ jq -n \
   }' > config.json
 
 
-if [ ! -f $JARFILE ]; then
+# Check if the server JAR file exists
+if [ ! -f "$JARFILE" ]; then
+    echo "Server JAR file $JARFILE not found. Downloading version: $VERSION"
+    
+    # Download and extract the Hytale downloader if not present
     if [ ! -f "download.zip" ]; then
         echo "Downloading Hytale downloader..."
         curl -L -o download.zip https://downloader.hytale.com/hytale-downloader.zip
@@ -67,17 +78,37 @@ if [ ! -f $JARFILE ]; then
         echo "Extracting downloader..."
         unzip -o download.zip
         chmod +x hytale-downloader-linux-amd64
-        ./hytale-downloader-linux-amd64 -download-path game.zip
-        unzip game.zip
-        mv Server/HytaleServer.jar .
     fi
+    
+    # Download the server files
+    echo "Downloading Hytale server files..."
+    ./hytale-downloader-linux-amd64 -download-path game.zip
+    
+    # Extract the server files
+    echo "Extracting server files..."
+    unzip -o game.zip
+    
+    # Move the JAR file to the versioned filename
+    if [ -f "Server/HytaleServer.jar" ]; then
+        mv Server/HytaleServer.jar "$JARFILE"
+        echo "Server JAR saved as: $JARFILE"
+    else
+        echo "ERROR: Server JAR not found after extraction"
+        exit 1
+    fi
+    
+    # Clean up temporary files
+    rm -rf Server
+    rm -f game.zip
+else
+    echo "Using existing server JAR: $JARFILE"
 fi
 
-if [ ! -f $ASSETS_ZIP ]; then
+if [ ! -f "$ASSETS_ZIP" ]; then
     echo "ERROR: ${ASSETS_ZIP} not found. Please copy it from your game client."
     exit 1
 fi
 
-exec java $MEMORY_OPTS -jar $JARFILE \
-    --assets $ASSETS_ZIP \
+exec java $MEMORY_OPTS -jar "$JARFILE" \
+    --assets "$ASSETS_ZIP" \
     --bind 0.0.0.0:${PORT:-5520} \
