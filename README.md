@@ -55,19 +55,21 @@ services:
 
 ### Environment Variable Options
 
-| Argument    | Default Value    | Description                                                                         |
-| ----------- | ---------------- | ----------------------------------------------------------------------------------- |
-| MEMORY      | 8G               | How much RAM to dedicate to the server. (Recommended: Half of system RAM available) |
-| PORT        | 5520             | Port the server is hosted on                                                        |
-| SERVER_NAME | Hytale Server    | Name of server                                                                      |
-| MOTD        |                  | Message of the day                                                                  |
-| PASSWORD    |                  | Password required to join the server                                                |
-| MAX_PLAYERS | 100              | Maximum players allowed in server                                                   |
-| MAX_RADIUS  | 32               | Maximum view distance. Higher values = higher view distance at cost of performance  |
-| WORLD_NAME  | default          | Which world folder to host                                                          |
-| GAME_MODE   | Adventure        | Which game mode to host the world in                                                |
-| JARFILE     | HytaleServer.jar | If your server jarfile is named anything other than the default                     |
-| ASSETS_ZIP  | Assets.zip       | If your Assets.zip file is named anything other than the default                    |
+| Argument           | Default Value    | Description                                                                         |
+| ------------------ | ---------------- | ----------------------------------------------------------------------------------- |
+| MEMORY             | 8G               | How much RAM to dedicate to the server. (Recommended: Half of system RAM available) |
+| PORT               | 5520             | Port the server is hosted on                                                        |
+| SERVER_NAME        | Hytale Server    | Name of server                                                                      |
+| MOTD               |                  | Message of the day                                                                  |
+| PASSWORD           |                  | Password required to join the server                                                |
+| MAX_PLAYERS        | 100              | Maximum players allowed in server                                                   |
+| MAX_RADIUS         | 32               | Maximum view distance. Higher values = higher view distance at cost of performance  |
+| WORLD_NAME         | default          | Which world folder to host                                                          |
+| GAME_MODE          | Adventure        | Which game mode to host the world in                                                |
+| JARFILE            | HytaleServer.jar | If your server jarfile is named anything other than the default                     |
+| ASSETS_ZIP         | Assets.zip       | If your Assets.zip file is named anything other than the default                    |
+| CHECK_FOR_UPDATES  | false            | Check if the latest version of the game is being used on startup                    |
+| AUTO_UPDATE        | false            | Automatically delete old server files and redownload if outdated (requires CHECK_FOR_UPDATES=true) |
 
 ---
 
