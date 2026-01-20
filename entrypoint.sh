@@ -68,6 +68,10 @@ jq -n \
 if [ ! -f "$JARFILE" ]; then
     echo "Server JAR file $JARFILE not found. Downloading version: $VERSION"
     
+    # NOTE: The Hytale downloader currently only supports downloading the latest version.
+    # The VERSION variable allows you to track which version is installed via the filename,
+    # but all downloads will fetch the latest available version from Hytale's servers.
+    
     # Download and extract the Hytale downloader if not present
     if [ ! -f "download.zip" ]; then
         echo "Downloading Hytale downloader..."

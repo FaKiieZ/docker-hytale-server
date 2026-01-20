@@ -59,7 +59,7 @@ services:
 | ----------- | ---------------- | ----------------------------------------------------------------------------------- |
 | MEMORY      | 8G               | How much RAM to dedicate to the server. (Recommended: Half of system RAM available) |
 | PORT        | 5520             | Port the server is hosted on                                                        |
-| VERSION     | latest           | Version of the Hytale server to use. When set, server JAR will be named HytaleServer-{VERSION}.jar. Default is "latest" which uses HytaleServer.jar |
+| VERSION     | latest           | Version of the Hytale server to use. When set to a specific version (e.g., "1.0.0"), the server JAR will be named HytaleServer-{VERSION}.jar. Default is "latest" which uses HytaleServer.jar. Note: The Hytale downloader currently only fetches the latest version; this variable helps track which version is installed. |
 | SERVER_NAME | Hytale Server    | Name of server                                                                      |
 | MOTD        |                  | Message of the day                                                                  |
 | PASSWORD    |                  | Password required to join the server                                                |
