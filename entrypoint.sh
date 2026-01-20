@@ -17,6 +17,15 @@ AUTO_UPDATE=${AUTO_UPDATE:-false}
 
 # Global variable for version info
 LATEST_VERSION=""
+CURRENT_VERSION=""
+
+load_current_version() {
+    if [ -f ".server_version" ]; then
+        CURRENT_VERSION=$(cat .server_version)
+    else
+        CURRENT_VERSION=""
+    fi
+}
 
 # Use jq to build the JSON object
 # We use --arg for strings and --argjson for numbers/booleans
@@ -61,11 +70,17 @@ jq -n \
     }
   }' > config.json
 
-# Helper function to backup universe folder
 backup_universe_folder() {
     if [ -d "universe" ]; then
         BACKUP_TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-        BACKUP_DIR="universe_backup_${BACKUP_TIMESTAMP}"
+        
+        # Include version info in backup name if available
+        VERSION_INFO=""
+        if [ -n "$CURRENT_VERSION" ]; then
+            VERSION_INFO="_v${CURRENT_VERSION}"
+        fi
+        
+        BACKUP_DIR="universe_backup_${BACKUP_TIMESTAMP}${VERSION_INFO}"
         echo "Backing up universe folder to ${BACKUP_DIR}..."
         
         # Create backup with rsync
@@ -84,7 +99,6 @@ backup_universe_folder() {
     fi
 }
 
-# Helper function to download and extract downloader
 download_and_extract_downloader() {
     echo "Downloading Hytale downloader..."
     curl -L -o download.zip https://downloader.hytale.com/hytale-downloader.zip
@@ -93,12 +107,10 @@ download_and_extract_downloader() {
     chmod +x hytale-downloader-linux-amd64
 }
 
-# Helper function to get server version from downloader
 get_server_version() {
     ./hytale-downloader-linux-amd64 -print-version 2>&1 | head -n1 | tr -d '\n\r' || echo ""
 }
 
-# Function to check and update the downloader itself
 check_and_update_downloader() {
     echo "Checking for Hytale downloader updates..."
     
@@ -135,7 +147,6 @@ check_and_update_downloader() {
     fi
 }
 
-# Function to check and update server version
 check_and_update_version() {
     if [ "$CHECK_FOR_UPDATES" = "true" ]; then
         # Always check and update downloader first
@@ -154,8 +165,7 @@ check_and_update_version() {
         echo "Latest version available: $LATEST_VERSION"
         
         # Check if we have a version file from previous installation
-        if [ -f ".server_version" ]; then
-            CURRENT_VERSION=$(cat .server_version)
+        if [ -n "$CURRENT_VERSION" ]; then
             echo "Current installed version: $CURRENT_VERSION"
             
             if [ "$CURRENT_VERSION" != "$LATEST_VERSION" ]; then
@@ -196,6 +206,9 @@ check_and_update_version() {
         fi
     fi
 }
+
+# Load current version info
+load_current_version
 
 # Run version check
 check_and_update_version
