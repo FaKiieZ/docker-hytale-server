@@ -190,17 +190,23 @@ check_and_update_version() {
                 echo "Server is up to date!"
             fi
         else
-            echo "No version file found. Assuming current installation is outdated and forcing update to latest version..."
+            echo "No version file found."
             
-            # Backup universe folder before removing server files
-            backup_universe_folder
-            
-            # Remove old server files to force download of latest version
-            rm -f "$JARFILE"
-            rm -f game.zip
-            rm -rf Server
-            
-            echo "Will download and install version: $LATEST_VERSION"
+            if [ "$AUTO_UPDATE" = "true" ]; then
+                echo "AUTO_UPDATE is enabled. Assuming current installation is outdated and forcing update to latest version..."
+                
+                # Backup universe folder before removing server files
+                backup_universe_folder
+                
+                # Remove old server files to force download of latest version
+                rm -f "$JARFILE"
+                rm -f game.zip
+                rm -rf Server
+                
+                echo "Will download and install version: $LATEST_VERSION"
+            else
+                echo "AUTO_UPDATE is disabled. Skipping forced update and keeping current installation."
+            fi
         fi
     fi
 }
