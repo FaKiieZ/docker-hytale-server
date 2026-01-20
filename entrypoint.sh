@@ -134,6 +134,9 @@ check_and_update_downloader() {
         return
     fi
     
+    # NOTE: This check relies on the downloader printing the exact phrase "up to date"
+    # when no update is available. If the downloader's output format changes, this
+    # condition must be updated accordingly.
     if ! echo "$UPDATE_CHECK_OUTPUT" | grep -q "up to date"; then
         echo "Downloader update available. Updating..."
         rm -f download.zip
