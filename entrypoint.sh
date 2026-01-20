@@ -81,10 +81,8 @@ backup_universe_folder() {
         fi
         
         BACKUP_DIR="universe_backup_${BACKUP_TIMESTAMP}${VERSION_INFO}"
-        echo "Backing up universe folder to ${BACKUP_DIR}..."
         
-        # Create backup with rsync
-        echo "Backing up universe folder..."
+        echo "Backing up universe folder to ${BACKUP_DIR}..."
         rsync -av universe/ "${BACKUP_DIR}/"
         
         if [ $? -eq 0 ]; then
