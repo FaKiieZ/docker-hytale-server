@@ -57,7 +57,7 @@ services:
 ### Environment Variable Options
 
 | Argument          | Default Value    | Description                                                                                                                 |
-| ----------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| ---               | ---              | ---                                                                                                                         |
 | MEMORY            | 8G               | How much RAM to dedicate to the server. (Recommended: Half of system RAM available)                                         |
 | PORT              | 5520             | Port the server is hosted on                                                                                                |
 | SERVER_NAME       | Hytale Server    | Name of server                                                                                                              |
