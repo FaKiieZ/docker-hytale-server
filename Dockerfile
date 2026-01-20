@@ -1,6 +1,6 @@
 FROM eclipse-temurin:25-jre-jammy
 
-RUN apt-get update && apt-get install -y curl jq unzip && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y curl jq unzip rsync && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /data
 

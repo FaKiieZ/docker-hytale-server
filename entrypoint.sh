@@ -15,6 +15,9 @@ ASSETS_ZIP=${ASSETS_ZIP:-"Assets.zip"}
 CHECK_FOR_UPDATES=${CHECK_FOR_UPDATES:-false}
 AUTO_UPDATE=${AUTO_UPDATE:-false}
 
+# Global variable for version info
+LATEST_VERSION=""
+
 # Use jq to build the JSON object
 # We use --arg for strings and --argjson for numbers/booleans
 jq -n \
@@ -58,6 +61,29 @@ jq -n \
     }
   }' > config.json
 
+# Helper function to backup universe folder
+backup_universe_folder() {
+    if [ -d "universe" ]; then
+        BACKUP_TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+        BACKUP_DIR="universe_backup_${BACKUP_TIMESTAMP}"
+        echo "Backing up universe folder to ${BACKUP_DIR}..."
+        
+        # Create backup with rsync
+        echo "Backing up universe folder..."
+        rsync -av universe/ "${BACKUP_DIR}/"
+        
+        if [ $? -eq 0 ]; then
+            echo "Universe folder backed up to: ${BACKUP_DIR}"
+        else
+            echo "ERROR: Failed to backup universe folder!"
+            echo "Aborting update to prevent data loss."
+            exit 1
+        fi
+    else
+        echo "No universe folder found to backup."
+    fi
+}
+
 # Helper function to download and extract downloader
 download_and_extract_downloader() {
     echo "Downloading Hytale downloader..."
@@ -69,7 +95,7 @@ download_and_extract_downloader() {
 
 # Helper function to get server version from downloader
 get_server_version() {
-    ./hytale-downloader-linux-amd64 -print-version 2>&1 | grep -oP '(?<=Version: ).*' || echo ""
+    ./hytale-downloader-linux-amd64 -print-version 2>&1 | head -n1 | tr -d '\n\r' || echo ""
 }
 
 # Function to check and update the downloader itself
@@ -98,7 +124,7 @@ check_and_update_downloader() {
         return
     fi
     
-    if echo "$UPDATE_CHECK_OUTPUT" | grep -q "update available"; then
+    if ! echo "$UPDATE_CHECK_OUTPUT" | grep -q "up to date"; then
         echo "Downloader update available. Updating..."
         rm -f download.zip
         rm -f hytale-downloader-linux-amd64
@@ -136,7 +162,12 @@ check_and_update_version() {
                 echo "Server is outdated!"
                 
                 if [ "$AUTO_UPDATE" = "true" ]; then
-                    echo "AUTO_UPDATE is enabled. Removing old server files and downloading latest version..."
+                    echo "AUTO_UPDATE is enabled. Backing up universe folder before update..."
+                    
+                    # Backup universe folder before removing server files
+                    backup_universe_folder
+                    
+                    echo "Removing old server files and downloading latest version..."
                     
                     # Remove old server files (quote variables to handle special characters)
                     rm -f "$JARFILE"
@@ -151,7 +182,17 @@ check_and_update_version() {
                 echo "Server is up to date!"
             fi
         else
-            echo "No version file found. This may be a first-time installation or an upgrade from a previous version."
+            echo "No version file found. Assuming current installation is outdated and forcing update to latest version..."
+            
+            # Backup universe folder before removing server files
+            backup_universe_folder
+            
+            # Remove old server files to force download of latest version
+            rm -f "$JARFILE"
+            rm -f game.zip
+            rm -rf Server
+            
+            echo "Will download and install version: $LATEST_VERSION"
         fi
     fi
 }
@@ -159,7 +200,7 @@ check_and_update_version() {
 # Run version check
 check_and_update_version
 
-if [ ! -f $JARFILE ]; then
+if [ ! -f "$JARFILE" ]; then
     if [ ! -f "download.zip" ] || [ ! -f "hytale-downloader-linux-amd64" ]; then
         download_and_extract_downloader
     fi
@@ -169,24 +210,43 @@ if [ ! -f $JARFILE ]; then
         exit 1
     fi
     
+    echo "Downloading server files..."
     ./hytale-downloader-linux-amd64 -download-path game.zip
-    unzip game.zip
+    
+    if [ ! -f "game.zip" ]; then
+        echo "ERROR: Failed to download game.zip"
+        exit 1
+    fi
+    
+    echo "Extracting server files..."
+    unzip -o game.zip
+    
+    if [ ! -f "Server/HytaleServer.jar" ]; then
+        echo "ERROR: HytaleServer.jar not found in extracted files"
+        exit 1
+    fi
+    
     mv Server/HytaleServer.jar .
     
     # Save version information
-    VERSION=$(get_server_version)
-    if [ -z "$VERSION" ]; then
-        VERSION="unknown"
+    if [ -n "$LATEST_VERSION" ]; then
+        VERSION="$LATEST_VERSION"
+    else
+        # Fallback: get version if not already determined
+        VERSION=$(get_server_version)
+        if [ -z "$VERSION" ]; then
+            VERSION="unknown"
+        fi
     fi
     echo "$VERSION" > .server_version
     echo "Downloaded version $VERSION"
 fi
 
-if [ ! -f $ASSETS_ZIP ]; then
+if [ ! -f "$ASSETS_ZIP" ]; then
     echo "ERROR: ${ASSETS_ZIP} not found. Please copy it from your game client."
     exit 1
 fi
 
-exec java $MEMORY_OPTS -jar $JARFILE \
-    --assets $ASSETS_ZIP \
+exec java $MEMORY_OPTS -jar "$JARFILE" \
+    --assets "$ASSETS_ZIP" \
     --bind 0.0.0.0:${PORT:-5520} \
