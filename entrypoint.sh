@@ -58,6 +58,15 @@ jq -n \
     }
   }' > config.json
 
+# Helper function to download and extract downloader
+download_and_extract_downloader() {
+    echo "Downloading Hytale downloader..."
+    curl -L -o download.zip https://downloader.hytale.com/hytale-downloader.zip
+    echo "Extracting downloader..."
+    unzip -o download.zip
+    chmod +x hytale-downloader-linux-amd64
+}
+
 # Helper function to get server version from downloader
 get_server_version() {
     ./hytale-downloader-linux-amd64 -print-version 2>&1 | grep -oP '(?<=Version: ).*' || echo ""
@@ -69,8 +78,7 @@ check_and_update_downloader() {
     
     # Ensure downloader exists
     if [ ! -f "download.zip" ]; then
-        echo "Downloading Hytale downloader..."
-        curl -L -o download.zip https://downloader.hytale.com/hytale-downloader.zip
+        download_and_extract_downloader
     fi
     
     if [ ! -f "hytale-downloader-linux-amd64" ]; then
@@ -80,13 +88,21 @@ check_and_update_downloader() {
     fi
     
     # Check if downloader needs update
-    if ./hytale-downloader-linux-amd64 -check-update 2>&1 | grep -q "update available"; then
+    UPDATE_CHECK_OUTPUT=$(./hytale-downloader-linux-amd64 -check-update 2>&1)
+    UPDATE_CHECK_STATUS=$?
+    
+    # Check if command succeeded
+    if [ $UPDATE_CHECK_STATUS -ne 0 ]; then
+        echo "Warning: Failed to check for downloader updates (exit code: $UPDATE_CHECK_STATUS)"
+        echo "Continuing with existing downloader version..."
+        return
+    fi
+    
+    if echo "$UPDATE_CHECK_OUTPUT" | grep -q "update available"; then
         echo "Downloader update available. Updating..."
         rm -f download.zip
         rm -f hytale-downloader-linux-amd64
-        curl -L -o download.zip https://downloader.hytale.com/hytale-downloader.zip
-        unzip -o download.zip
-        chmod +x hytale-downloader-linux-amd64
+        download_and_extract_downloader
         echo "Downloader updated successfully."
     else
         echo "Downloader is up to date."
@@ -144,27 +160,26 @@ check_and_update_version() {
 check_and_update_version
 
 if [ ! -f $JARFILE ]; then
-    if [ ! -f "download.zip" ]; then
-        echo "Downloading Hytale downloader..."
-        curl -L -o download.zip https://downloader.hytale.com/hytale-downloader.zip
+    if [ ! -f "download.zip" ] || [ ! -f "hytale-downloader-linux-amd64" ]; then
+        download_and_extract_downloader
     fi
 
     if [ ! -f "hytale-downloader-linux-amd64" ]; then
-        echo "Extracting downloader..."
-        unzip -o download.zip
-        chmod +x hytale-downloader-linux-amd64
-        ./hytale-downloader-linux-amd64 -download-path game.zip
-        unzip game.zip
-        mv Server/HytaleServer.jar .
-        
-        # Save version information
-        VERSION=$(get_server_version)
-        if [ -z "$VERSION" ]; then
-            VERSION="unknown"
-        fi
-        echo "$VERSION" > .server_version
-        echo "Downloaded version $VERSION"
+        echo "ERROR: Failed to extract downloader"
+        exit 1
     fi
+    
+    ./hytale-downloader-linux-amd64 -download-path game.zip
+    unzip game.zip
+    mv Server/HytaleServer.jar .
+    
+    # Save version information
+    VERSION=$(get_server_version)
+    if [ -z "$VERSION" ]; then
+        VERSION="unknown"
+    fi
+    echo "$VERSION" > .server_version
+    echo "Downloaded version $VERSION"
 fi
 
 if [ ! -f $ASSETS_ZIP ]; then
