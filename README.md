@@ -68,7 +68,7 @@ services:
 | GAME_MODE          | Adventure        | Which game mode to host the world in                                                |
 | JARFILE            | HytaleServer.jar | If your server jarfile is named anything other than the default                     |
 | ASSETS_ZIP         | Assets.zip       | If your Assets.zip file is named anything other than the default                    |
-| CHECK_FOR_UPDATES  | false            | Check if the latest version of the game is being used on startup                    |
+| CHECK_FOR_UPDATES  | false            | Check if the latest version of the game is being used on startup. Also checks and updates the downloader tool automatically |
 | AUTO_UPDATE        | false            | Automatically delete old server files and redownload if outdated (requires CHECK_FOR_UPDATES=true) |
 
 ---

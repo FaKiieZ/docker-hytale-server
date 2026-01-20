@@ -63,22 +63,43 @@ get_server_version() {
     ./hytale-downloader-linux-amd64 -print-version 2>&1 | grep -oP '(?<=Version: ).*' || echo ""
 }
 
+# Function to check and update the downloader itself
+check_and_update_downloader() {
+    echo "Checking for Hytale downloader updates..."
+    
+    # Ensure downloader exists
+    if [ ! -f "download.zip" ]; then
+        echo "Downloading Hytale downloader..."
+        curl -L -o download.zip https://downloader.hytale.com/hytale-downloader.zip
+    fi
+    
+    if [ ! -f "hytale-downloader-linux-amd64" ]; then
+        echo "Extracting downloader..."
+        unzip -o download.zip
+        chmod +x hytale-downloader-linux-amd64
+    fi
+    
+    # Check if downloader needs update
+    if ./hytale-downloader-linux-amd64 -check-update 2>&1 | grep -q "update available"; then
+        echo "Downloader update available. Updating..."
+        rm -f download.zip
+        rm -f hytale-downloader-linux-amd64
+        curl -L -o download.zip https://downloader.hytale.com/hytale-downloader.zip
+        unzip -o download.zip
+        chmod +x hytale-downloader-linux-amd64
+        echo "Downloader updated successfully."
+    else
+        echo "Downloader is up to date."
+    fi
+}
+
 # Function to check and update server version
 check_and_update_version() {
     if [ "$CHECK_FOR_UPDATES" = "true" ]; then
+        # Always check and update downloader first
+        check_and_update_downloader
+        
         echo "Checking for server updates..."
-        
-        # Ensure downloader exists
-        if [ ! -f "download.zip" ]; then
-            echo "Downloading Hytale downloader..."
-            curl -L -o download.zip https://downloader.hytale.com/hytale-downloader.zip
-        fi
-        
-        if [ ! -f "hytale-downloader-linux-amd64" ]; then
-            echo "Extracting downloader..."
-            unzip -o download.zip
-            chmod +x hytale-downloader-linux-amd64
-        fi
         
         # Get the latest version available
         LATEST_VERSION=$(get_server_version)
