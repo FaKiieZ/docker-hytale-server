@@ -58,6 +58,11 @@ jq -n \
     }
   }' > config.json
 
+# Helper function to get server version from downloader
+get_server_version() {
+    ./hytale-downloader-linux-amd64 -print-version 2>&1 | grep -oP '(?<=Version: ).*' || echo ""
+}
+
 # Function to check and update server version
 check_and_update_version() {
     if [ "$CHECK_FOR_UPDATES" = "true" ]; then
@@ -76,7 +81,7 @@ check_and_update_version() {
         fi
         
         # Get the latest version available
-        LATEST_VERSION=$(./hytale-downloader-linux-amd64 -print-version 2>&1 | grep -oP '(?<=Version: ).*' || echo "")
+        LATEST_VERSION=$(get_server_version)
         
         if [ -z "$LATEST_VERSION" ]; then
             echo "Warning: Could not determine latest version. Skipping version check."
@@ -96,8 +101,8 @@ check_and_update_version() {
                 if [ "$AUTO_UPDATE" = "true" ]; then
                     echo "AUTO_UPDATE is enabled. Removing old server files and downloading latest version..."
                     
-                    # Remove old server files
-                    rm -f $JARFILE
+                    # Remove old server files (quote variables to handle special characters)
+                    rm -f "$JARFILE"
                     rm -f game.zip
                     rm -rf Server
                     
@@ -132,7 +137,10 @@ if [ ! -f $JARFILE ]; then
         mv Server/HytaleServer.jar .
         
         # Save version information
-        VERSION=$(./hytale-downloader-linux-amd64 -print-version 2>&1 | grep -oP '(?<=Version: ).*' || echo "unknown")
+        VERSION=$(get_server_version)
+        if [ -z "$VERSION" ]; then
+            VERSION="unknown"
+        fi
         echo "$VERSION" > .server_version
         echo "Downloaded version $VERSION"
     fi
